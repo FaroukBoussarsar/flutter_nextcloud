@@ -10,8 +10,15 @@ import 'configuration_screen.dart';
 
 class NextcloudBrowserScreen extends StatefulWidget {
   final NextcloudConfig config;
+  final String? title;
+  final PreferredSizeWidget? customAppBar;
 
-  const NextcloudBrowserScreen({super.key, required this.config});
+  const NextcloudBrowserScreen({
+    super.key,
+    required this.config,
+    this.title,
+    this.customAppBar,
+  });
 
   @override
   State<NextcloudBrowserScreen> createState() => _NextcloudBrowserScreenState();
@@ -471,35 +478,37 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Nextcloud Browser'),
-        leading: _canGoBack()
-            ? IconButton(icon: const Icon(Icons.arrow_back), onPressed: _goBack)
-            : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.create_new_folder),
-            tooltip: 'Create Folder',
-            onPressed: _showCreateFolderDialog,
+      appBar: widget.customAppBar ??
+          AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: Text(widget.title ?? 'Nextcloud Browser'),
+            leading: _canGoBack()
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back), onPressed: _goBack)
+                : null,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.create_new_folder),
+                tooltip: 'Create Folder',
+                onPressed: _showCreateFolderDialog,
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () => _loadDirectory(_currentPath),
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Change Account',
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const ConfigurationScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => _loadDirectory(_currentPath),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Change Account',
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const ConfigurationScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
       body: Column(
         children: [
           Container(
@@ -561,90 +570,101 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red,
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => _loadDirectory(_currentPath),
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _loadDirectory(_currentPath),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  )
-                : _items.isEmpty
-                ? const Center(child: Text('Empty folder'))
-                : ListView.builder(
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      final isDownloading = _downloadProgress.containsKey(
-                        item.href,
-                      );
-                      final progress = _downloadProgress[item.href] ?? 0.0;
+                      )
+                    : _items.isEmpty
+                        ? const Center(child: Text('Empty folder'))
+                        : ListView.builder(
+                            itemCount: _items.length,
+                            itemBuilder: (context, index) {
+                              final item = _items[index];
+                              final isDownloading =
+                                  _downloadProgress.containsKey(
+                                item.href,
+                              );
+                              final progress =
+                                  _downloadProgress[item.href] ?? 0.0;
 
-                      return ListTile(
-                        leading: Icon(
-                          item.isDirectory
-                              ? Icons.folder
-                              : Icons.insert_drive_file,
-                          color: item.isDirectory ? Colors.amber : Colors.blue,
-                          size: 32,
-                        ),
-                        title: Text(item.name),
-                        subtitle: item.isDirectory
-                            ? const Text('Folder')
-                            : Text(item.displaySize),
-                        trailing: isDownloading
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  value: progress == 0 ? null : progress,
-                                  strokeWidth: 2,
+                              return ListTile(
+                                leading: Icon(
+                                  item.isDirectory
+                                      ? Icons.folder
+                                      : Icons.insert_drive_file,
+                                  color: item.isDirectory
+                                      ? Colors.amber
+                                      : Colors.blue,
+                                  size: 32,
                                 ),
-                              )
-                            : item.isDirectory
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.more_vert),
-                                    onPressed: () => _showItemOptions(item),
-                                  ),
-                                  const Icon(Icons.chevron_right),
-                                ],
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.more_vert),
-                                    onPressed: () => _showItemOptions(item),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.download),
-                                    onPressed: () => _downloadFile(item),
-                                  ),
-                                ],
-                              ),
-                        onTap: () => _navigateToItem(item),
-                        onLongPress: () => _showItemOptions(item),
-                      );
-                    },
-                  ),
+                                title: Text(item.name),
+                                subtitle: item.isDirectory
+                                    ? const Text('Folder')
+                                    : Text(item.displaySize),
+                                trailing: isDownloading
+                                    ? SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          value:
+                                              progress == 0 ? null : progress,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : item.isDirectory
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon:
+                                                    const Icon(Icons.more_vert),
+                                                onPressed: () =>
+                                                    _showItemOptions(item),
+                                              ),
+                                              const Icon(Icons.chevron_right),
+                                            ],
+                                          )
+                                        : Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon:
+                                                    const Icon(Icons.more_vert),
+                                                onPressed: () =>
+                                                    _showItemOptions(item),
+                                              ),
+                                              IconButton(
+                                                icon:
+                                                    const Icon(Icons.download),
+                                                onPressed: () =>
+                                                    _downloadFile(item),
+                                              ),
+                                            ],
+                                          ),
+                                onTap: () => _navigateToItem(item),
+                                onLongPress: () => _showItemOptions(item),
+                              );
+                            },
+                          ),
           ),
         ],
       ),

@@ -1,6 +1,6 @@
-# Nextcloud Browser App
+# Flutter Nextcloud
 
-A Flutter application to browse, download, and manage files from any Nextcloud server - both public shares and authenticated user accounts.
+A Flutter package for browsing, downloading, and managing files from any Nextcloud server using the WebDAV protocol. Supports both public shares and authenticated user accounts.
 
 ## Features
 
@@ -11,118 +11,325 @@ A Flutter application to browse, download, and manage files from any Nextcloud s
 - 🗑️ Delete files and folders
 - ✏️ Rename files and folders
 - 🔍 View file sizes and modification dates
-- 🔙 Navigate through folders with back button
+- 🔙 Navigate through folders
 - 🔐 Support for both public shares and authenticated accounts
 - 📱 Cross-platform support (iOS, Android, Web, Desktop)
+- 🎨 Pre-built UI screens (optional)
 
-## Configuration
+## Installation
 
-The app uses a configuration screen where you can input your Nextcloud server details:
+Add this to your package's `pubspec.yaml` file:
 
-- **Server URL**: Your Nextcloud server URL (e.g., https://cloud.example.com)
-- **Share Token or Username**: Depending on connection type
-- **Password**: Optional for public shares, required for user accounts
-
-### For Public Shares
-
-1. Get your share link from Nextcloud (e.g., https://cloud.example.com/s/abcdefghijklmno)
-2. Extract the token (the part after /s/, e.g., "abcdefghijklmno")
-3. Enter your server URL and token in the configuration screen
-
-### For Authenticated Users
-
-1. Enter your Nextcloud server URL
-2. Enter your username and password
-3. Connect to browse your personal files
-
-You can also edit the code to set default values in `lib/screens/configuration_screen.dart`:
-
-```dart
-final _serverUrlController = TextEditingController(
-  text: 'https://your-nextcloud-server.com',
-);
-final _usernameController = TextEditingController(text: 'your-token-or-username');
+```yaml
+dependencies:
+  flutter_nextcloud:
+    git:
+      url: https://github.com/FaroukBoussarsar/flutter_nextcloud.git
 ```
 
-## Setup and Installation
+Or if published to pub.dev:
 
-### Prerequisites
+```yaml
+dependencies:
+  flutter_nextcloud: ^0.1.0
+```
 
-- Flutter SDK (3.9.2 or higher)
-- Dart SDK
-- For Android: Android Studio and SDK
-- For iOS: Xcode (Mac only)
+Then run:
 
-### Installation Steps
+```bash
+flutter pub get
+```
 
-1. **Clone or navigate to the project directory**
+## Usage
 
-   ```bash
-   cd flutter_nextcloud
-   ```
+### Quick Start with FlutterNextcloud Widget
 
-2. **Install dependencies**
+The simplest way to use the package is with the `FlutterNextcloud` widget:
 
-   ```bash
-   flutter pub get
-   ```
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_nextcloud/flutter_nextcloud.dart';
 
-3. **Run the app**
+void main() {
+  runApp(const FlutterNextcloud());
+}
+```
 
-   For Android:
+### Custom Theme and Title
 
-   ```bash
-   flutter run -d android
-   ```
+Customize colors and title:
 
-   For iOS (Mac only):
+```dart
+void main() {
+  runApp(
+    const FlutterNextcloud(
+      primaryColor: Colors.green,
+      secondaryColor: Colors.teal,
+      title: 'My Cloud Storage',
+    ),
+  );
+}
+```
 
-   ```bash
-   flutter run -d ios
-   ```
+### Pre-filled Configuration
 
-   For Web:
+Pre-fill server details (user can still modify):
 
-   ```bash
-   flutter run -d chrome
-   ```
+```dart
+void main() {
+  runApp(
+    const FlutterNextcloud(
+      primaryColor: Colors.purple,
+      title: 'Company Cloud',
+      serverUrl: 'https://cloud.example.com',
+      shareToken: 'your-share-token',
+      password: 'optional-password',
+    ),
+  );
+}
+```
 
-   For Desktop:
+### Auto-Connect
 
-   ```bash
-   flutter run -d macos    # Mac
-   flutter run -d windows  # Windows
-   flutter run -d linux    # Linux
-   ```
+Skip configuration screen and connect directly:
 
-## How to Use
+```dart
+void main() {
+  runApp(
+    const FlutterNextcloud(
+      serverUrl: 'https://cloud.example.com',
+      shareToken: 'your-share-token',
+      password: 'your-password',
+      autoConnect: true,
+      isPublicShare: true, // or false for authenticated user
+    ),
+  );
+}
+```
 
-1. **Launch the app** - Enter your Nextcloud server details on the configuration screen
-2. **Browse folders** - Tap on any folder to navigate into it
-3. **Download files** - Tap on a file to see details, then use the download button
-4. **Upload files** - Use the upload button to add files to the current directory
-5. **Create folders** - Use the create folder button to organize your files
-6. **Manage items** - Long press or use context menu to rename or delete items
-7. **Go back** - Use the back button in the app bar to return to the previous folder
-8. **Refresh** - Use the refresh button to reload the current directory
+See [EXAMPLES.md](EXAMPLES.md) for more usage examples.
 
-## Downloaded Files Location
+### Using the Service Directly
 
-Files are saved to different locations depending on the platform:
+For custom UI implementations, use the `NextcloudService` directly:
 
-- **Android**: `/storage/emulated/0/Android/data/com.example.flutter_nextcloud/files/NextcloudDownloads/`
-- **iOS**: App Documents directory under `NextcloudDownloads/`
-- **Desktop**: Downloads folder under `NextcloudDownloads/`
+```dart
+import 'package:flutter_nextcloud/flutter_nextcloud.dart';
+
+// Create a configuration for public share
+final config = NextcloudConfig.publicShare(
+  serverUrl: 'https://cloud.example.com',
+  shareToken: 'your-share-token',
+  password: '', // optional
+);
+
+// Or for authenticated user
+final config = NextcloudConfig.authenticated(
+  serverUrl: 'https://cloud.example.com',
+  username: 'your-username',
+  password: 'your-password',
+);
+
+// Create service instance
+final service = NextcloudService(config);
+
+// List directory contents
+final items = await service.listDirectory('/');
+
+// Download a file
+await service.downloadFile(items[0], '/path/to/save/file.txt');
+
+// Upload a file
+await service.uploadFile(
+  '/path/to/local/file.txt',
+  '/remote/path/file.txt',
+  onProgress: (sent, total) {
+    print('Progress: ${(sent / total * 100).toStringAsFixed(1)}%');
+  },
+);
+
+// Create a folder
+await service.createFolder('/new-folder');
+
+// Delete an item
+await service.deleteItem('/path/to/item');
+
+// Rename an item
+await service.renameItem('/old-path', '/new-path');
+```
+
+## Models
+
+### NextcloudConfig
+
+Configuration for connecting to a Nextcloud server:
+
+```dart
+// Public share
+NextcloudConfig.publicShare({
+  required String serverUrl,
+  required String shareToken,
+  String password = '',
+})
+
+// Authenticated user
+NextcloudConfig.authenticated({
+  required String serverUrl,
+  required String username,
+  required String password,
+})
+```
+
+### NextcloudItem
+
+Represents a file or folder on the Nextcloud server:
+
+```dart
+class NextcloudItem {
+  final String name;           // Display name
+  final String href;           // Full path on server
+  final bool isDirectory;      // true if folder, false if file
+  final int size;             // File size in bytes
+  final DateTime? lastModified; // Last modification date
+}
+```
+
+## Example App
+
+See the [example](example/) directory for a complete working app demonstrating all features.
+
+To run the example:
+
+```bash
+cd example
+flutter pub get
+flutter run
+```
+
+## Platform Support
+
+| Platform | Supported |
+| -------- | --------- |
+| Android  | ✅        |
+| iOS      | ✅        |
+| Web      | ✅        |
+| macOS    | ✅        |
+| Windows  | ✅        |
+| Linux    | ✅        |
 
 ## Permissions
 
 ### Android
 
-The app requires the following permissions (already configured in AndroidManifest.xml):
+Add to `AndroidManifest.xml`:
 
-- `INTERNET` - To access Nextcloud server
-- `WRITE_EXTERNAL_STORAGE` - To save downloaded files
-- `READ_EXTERNAL_STORAGE` - To access storage
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+```
+
+### iOS
+
+Add to `Info.plist`:
+
+```xml
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>We need access to save downloaded files</string>
+```
+
+## Requirements
+
+- Flutter SDK 3.0.0 or higher
+- Dart SDK 3.0.0 or higher
+
+## How It Works
+
+The package uses the **WebDAV protocol** to communicate with Nextcloud servers:
+
+1. **Authentication**: Supports both public share tokens and user credentials via Basic Auth
+2. **PROPFIND Method**: Lists directory contents with file metadata
+3. **File Operations**:
+   - GET for downloads
+   - PUT for uploads with progress tracking
+   - MKCOL for creating folders
+   - DELETE for removing items
+   - MOVE for renaming/moving items
+
+## API Reference
+
+### NextcloudService
+
+Main service class for interacting with Nextcloud:
+
+```dart
+NextcloudService(NextcloudConfig config)
+
+Future<List<NextcloudItem>> listDirectory(String path)
+Future<void> downloadFile(NextcloudItem item, String savePath)
+Future<void> uploadFile(String localFilePath, String remotePath, {Function(int sent, int total)? onProgress})
+Future<void> createFolder(String folderPath)
+Future<void> deleteItem(String itemPath)
+Future<void> renameItem(String oldPath, String newPath)
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+- Ensure you have internet connectivity
+- Verify the Nextcloud server is accessible
+- Check if the share token or credentials are correct
+- Make sure the server URL includes the protocol (https:// or http://)
+
+### Download/Upload Failures
+
+- Check storage permissions are granted
+- Ensure sufficient storage space
+- Verify file is not corrupted on the server
+- Check your network connection stability
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Dependencies
+
+- `http: ^1.1.0` - HTTP client for API requests
+- `xml: ^6.5.0` - XML parsing for WebDAV responses
+- `path_provider: ^2.1.1` - Access to device file system
+- `permission_handler: ^11.0.1` - Runtime permissions management
+- `file_picker: ^8.1.2` - File picker for uploads
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For issues, questions, or contributions:
+
+- 🐛 [Report bugs](https://github.com/FaroukBoussarsar/flutter_nextcloud/issues)
+- 💡 [Request features](https://github.com/FaroukBoussarsar/flutter_nextcloud/issues)
+- 📖 [View documentation](https://github.com/FaroukBoussarsar/flutter_nextcloud)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
+
+## Author
+
+**Farouk Boussarsar**
+
+- GitHub: [@FaroukBoussarsar](https://github.com/FaroukBoussarsar)
+
+```
 
 ### iOS
 
@@ -133,17 +340,19 @@ The app requires the following permissions (already configured in Info.plist):
 ## Project Structure
 
 ```
+
 lib/
-├── main.dart                          # App entry point
+├── main.dart # App entry point
 ├── models/
-│   ├── nextcloud_config.dart         # Configuration model
-│   └── nextcloud_item.dart           # Data model for files/folders
+│ ├── nextcloud_config.dart # Configuration model
+│ └── nextcloud_item.dart # Data model for files/folders
 ├── services/
-│   └── nextcloud_service.dart        # Nextcloud API communication
+│ └── nextcloud_service.dart # Nextcloud API communication
 └── screens/
-    ├── configuration_screen.dart     # Server configuration UI
-    └── nextcloud_browser_screen.dart # Main browser UI
-```
+├── configuration_screen.dart # Server configuration UI
+└── nextcloud_browser_screen.dart # Main browser UI
+
+````
 
 ## How It Works
 
@@ -165,7 +374,7 @@ theme: ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue), // Change color
   useMaterial3: true,
 ),
-```
+````
 
 ## Troubleshooting
 

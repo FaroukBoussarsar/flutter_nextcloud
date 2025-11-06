@@ -3,7 +3,24 @@ import '../models/nextcloud_config.dart';
 import 'nextcloud_browser_screen.dart';
 
 class ConfigurationScreen extends StatefulWidget {
-  const ConfigurationScreen({super.key});
+  final String? title;
+  final PreferredSizeWidget? customAppBar;
+  final String? initialServerUrl;
+  final String? initialShareToken;
+  final String? initialPassword;
+  final bool initialIsPublicShare;
+  final Color? primaryColor;
+
+  const ConfigurationScreen({
+    super.key,
+    this.title,
+    this.customAppBar,
+    this.initialServerUrl,
+    this.initialShareToken,
+    this.initialPassword,
+    this.initialIsPublicShare = true,
+    this.primaryColor,
+  });
 
   @override
   State<ConfigurationScreen> createState() => _ConfigurationScreenState();
@@ -11,12 +28,25 @@ class ConfigurationScreen extends StatefulWidget {
 
 class _ConfigurationScreenState extends State<ConfigurationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _serverUrlController = TextEditingController(
-    text: 'https://cloud.example.com',
-  );
-  final _usernameController = TextEditingController(text: '');
-  final _passwordController = TextEditingController();
-  bool _isPublicShare = true;
+  late final TextEditingController _serverUrlController;
+  late final TextEditingController _usernameController;
+  late final TextEditingController _passwordController;
+  late bool _isPublicShare;
+
+  @override
+  void initState() {
+    super.initState();
+    _serverUrlController = TextEditingController(
+      text: widget.initialServerUrl ?? 'https://cloud.example.com',
+    );
+    _usernameController = TextEditingController(
+      text: widget.initialShareToken ?? '',
+    );
+    _passwordController = TextEditingController(
+      text: widget.initialPassword ?? '',
+    );
+    _isPublicShare = widget.initialIsPublicShare;
+  }
 
   @override
   void dispose() {
@@ -43,7 +73,10 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => NextcloudBrowserScreen(config: config),
+          builder: (context) => NextcloudBrowserScreen(
+            config: config,
+            title: widget.title,
+          ),
         ),
       );
     }
@@ -51,11 +84,14 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final effectivePrimaryColor = widget.primaryColor ?? Colors.blue;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Connect to Nextcloud'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
+      appBar: widget.customAppBar ??
+          AppBar(
+            title: Text(widget.title ?? 'Connect to Nextcloud'),
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -63,7 +99,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.cloud, size: 80, color: Colors.blue),
+              Icon(Icons.cloud, size: 80, color: effectivePrimaryColor),
               const SizedBox(height: 24),
               const Text(
                 'Nextcloud Connection',
@@ -171,7 +207,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                 onPressed: _connect,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: effectivePrimaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Row(
@@ -187,7 +223,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
 
               // Help Text
               Card(
-                color: Colors.blue.shade50,
+                color: effectivePrimaryColor.withValues(alpha: 0.1),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -195,13 +231,13 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info, color: Colors.blue.shade700),
+                          Icon(Icons.info, color: effectivePrimaryColor),
                           const SizedBox(width: 8),
                           Text(
                             'How to find share token:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
+                              color: effectivePrimaryColor,
                             ),
                           ),
                         ],
@@ -216,7 +252,7 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                         'Token: abc123',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue.shade900,
+                          color: effectivePrimaryColor.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
