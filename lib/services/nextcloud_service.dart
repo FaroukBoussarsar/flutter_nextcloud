@@ -24,10 +24,6 @@ class NextcloudService {
   Future<List<NextcloudItem>> listDirectory(String path) async {
     try {
       final url = Uri.parse('$baseUrl$path');
-      print('=== NEXTCLOUD REQUEST ===');
-      print('URL: $url');
-      print('Path: $path');
-      print('Headers: ${_getHeaders()}');
 
       final response = await http.Request('PROPFIND', url)
         ..headers.addAll(_getHeaders())
@@ -45,23 +41,13 @@ class NextcloudService {
   </d:prop>
 </d:propfind>''';
 
-      print('Request Method: PROPFIND');
-      print('Request Headers: ${response.headers}');
 
       final streamedResponse = await response.send();
       final responseBody = await streamedResponse.stream.bytesToString();
 
-      print('=== NEXTCLOUD RESPONSE ===');
-      print('Status Code: ${streamedResponse.statusCode}');
-      print('Response Headers: ${streamedResponse.headers}');
-      print('Response Body Length: ${responseBody.length}');
-      print('Response Body:');
-      print(responseBody);
-      print('=== END RESPONSE ===');
 
       if (streamedResponse.statusCode == 207) {
         final items = _parseWebDavResponse(responseBody, path);
-        print('Parsed ${items.length} items from response');
         return items;
       } else {
         throw Exception(
@@ -69,26 +55,20 @@ class NextcloudService {
         );
       }
     } catch (e) {
-      print('Error listing directory: $e');
       rethrow;
     }
   }
 
   List<NextcloudItem> _parseWebDavResponse(String xml, String currentPath) {
-    print('=== PARSING WEBDAV RESPONSE ===');
-    print('Current Path: $currentPath');
 
     final document = XmlDocument.parse(xml);
     final responses = document.findAllElements('d:response');
-    print('Found ${responses.length} response elements');
 
     final items = <NextcloudItem>[];
 
     for (final response in responses) {
       try {
         final href = response.findElements('d:href').first.innerText;
-        print('\n--- Processing item ---');
-        print('Href: $href');
 
         // Normalize paths for comparison (remove trailing slashes)
         final normalizedHref = href.endsWith('/')
@@ -102,13 +82,9 @@ class NextcloudService {
               )
             : normalizedCurrentPath;
 
-        print('Normalized Href: $normalizedHref');
-        print('Normalized Current Path: $normalizedCurrentPathAlt');
-        print('Are they equal? ${normalizedHref == normalizedCurrentPathAlt}');
 
         // Skip the current directory itself
         if (normalizedHref == normalizedCurrentPathAlt) {
-          print('SKIPPED: Current directory');
           continue;
         }
 
@@ -136,10 +112,6 @@ class NextcloudService {
               )
             : null;
 
-        print('Display Name: $displayName');
-        print('Is Directory: $isDirectory');
-        print('Size: $contentLength');
-        print('Last Modified: $lastModified');
 
         final item = NextcloudItem(
           name: displayName,
@@ -150,18 +122,9 @@ class NextcloudService {
         );
 
         items.add(item);
-        print('ADDED to items list');
       } catch (e) {
-        print('Error parsing item: $e');
+        // Silently skip items that fail to parse
       }
-    }
-
-    print('\n=== PARSING COMPLETE ===');
-    print('Total items added: ${items.length}');
-    for (var item in items) {
-      print(
-        '  - ${item.isDirectory ? "📁" : "📄"} ${item.name} (${item.href})',
-      );
     }
 
     return items;
@@ -176,25 +139,17 @@ class NextcloudService {
           '${baseUri.scheme}://${baseUri.host}${baseUri.hasPort ? ':${baseUri.port}' : ''}';
       final url = Uri.parse('$serverUrl${item.href}');
 
-      print('=== DOWNLOADING FILE ===');
-      print('File: ${item.name}');
-      print('URL: $url');
-      print('Save Path: $savePath');
 
       final response = await http.get(url, headers: _getHeaders());
 
-      print('Download Status Code: ${response.statusCode}');
-      print('Download Response Size: ${response.bodyBytes.length}');
 
       if (response.statusCode == 200) {
         final file = File(savePath);
         await file.writeAsBytes(response.bodyBytes);
-        print('✅ File saved successfully');
       } else {
         throw Exception('Failed to download file: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error downloading file: $e');
       rethrow;
     }
   }
@@ -213,11 +168,6 @@ class NextcloudService {
       final fileLength = await file.length();
       final url = Uri.parse('$baseUrl$remotePath');
 
-      print('=== UPLOADING FILE ===');
-      print('Local File: $localFilePath');
-      print('Remote Path: $remotePath');
-      print('URL: $url');
-      print('File Size: $fileLength bytes');
 
       // Create a multipart request with progress tracking
       final request = http.StreamedRequest('PUT', url);
@@ -235,9 +185,6 @@ class NextcloudService {
           if (onProgress != null) {
             onProgress(bytesSent, fileLength);
           }
-          print(
-            'Upload progress: ${(bytesSent / fileLength * 100).toStringAsFixed(1)}%',
-          );
         },
         onDone: () {
           request.sink.close();
@@ -256,18 +203,14 @@ class NextcloudService {
         },
       );
 
-      print('Upload Status Code: ${response.statusCode}');
 
       if (response.statusCode == 201 || response.statusCode == 204) {
-        print('✅ File uploaded successfully');
+        // Upload successful
       } else {
-        final responseBody = await response.stream.bytesToString();
-        print('Upload failed with status: ${response.statusCode}');
-        print('Response: $responseBody');
+        await response.stream.bytesToString(); // Consume response
         throw Exception('Failed to upload file: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error uploading file: $e');
       rethrow;
     }
   }
@@ -275,9 +218,6 @@ class NextcloudService {
   Future<void> createFolder(String folderPath) async {
     try {
       final url = Uri.parse('$baseUrl$folderPath');
-      print('=== CREATING FOLDER ===');
-      print('URL: $url');
-      print('Folder Path: $folderPath');
 
       final response = await http.Request('MKCOL', url)
         ..headers.addAll(_getHeaders());
@@ -285,19 +225,15 @@ class NextcloudService {
       final streamedResponse = await response.send();
       final statusCode = streamedResponse.statusCode;
 
-      print('Create Folder Status Code: $statusCode');
-
       if (statusCode == 201) {
-        print('✅ Folder created successfully');
+        // Folder created successfully
       } else if (statusCode == 405) {
         throw Exception('Folder already exists');
       } else {
-        final responseBody = await streamedResponse.stream.bytesToString();
-        print('Response: $responseBody');
+        await streamedResponse.stream.bytesToString(); // Consume response
         throw Exception('Failed to create folder: $statusCode');
       }
     } catch (e) {
-      print('Error creating folder: $e');
       rethrow;
     }
   }
@@ -305,23 +241,15 @@ class NextcloudService {
   Future<void> deleteItem(String itemPath) async {
     try {
       final url = Uri.parse('$baseUrl$itemPath');
-      print('=== DELETING ITEM ===');
-      print('URL: $url');
-      print('Item Path: $itemPath');
 
       final response = await http.delete(url, headers: _getHeaders());
 
-      print('Delete Status Code: ${response.statusCode}');
 
       if (response.statusCode == 204) {
-        print('✅ Item deleted successfully');
       } else {
-        print('Delete failed with status: ${response.statusCode}');
-        print('Response: ${response.body}');
         throw Exception('Failed to delete item: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error deleting item: $e');
       rethrow;
     }
   }
@@ -331,9 +259,6 @@ class NextcloudService {
       final sourceUrl = Uri.parse('$baseUrl$oldPath');
       final destinationUrl = Uri.parse('$baseUrl$newPath');
 
-      print('=== RENAMING ITEM ===');
-      print('Source URL: $sourceUrl');
-      print('Destination URL: $destinationUrl');
 
       final response = await http.Request('MOVE', sourceUrl)
         ..headers.addAll(_getHeaders())
@@ -342,18 +267,13 @@ class NextcloudService {
       final streamedResponse = await response.send();
       final statusCode = streamedResponse.statusCode;
 
-      print('Rename Status Code: $statusCode');
-
       if (statusCode == 201 || statusCode == 204) {
-        print('✅ Item renamed successfully');
+        // Item renamed successfully
       } else {
-        final responseBody = await streamedResponse.stream.bytesToString();
-        print('Rename failed with status: $statusCode');
-        print('Response: $responseBody');
+        await streamedResponse.stream.bytesToString(); // Consume response
         throw Exception('Failed to rename item: $statusCode');
       }
     } catch (e) {
-      print('Error renaming item: $e');
       rethrow;
     }
   }

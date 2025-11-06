@@ -43,9 +43,6 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
   }
 
   Future<void> _loadDirectory(String path) async {
-    print('\n╔═══════════════════════════════════════════════════════════╗');
-    print('║ LOADING DIRECTORY: $path');
-    print('╚═══════════════════════════════════════════════════════════╝');
 
     setState(() {
       _isLoading = true;
@@ -54,7 +51,6 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
 
     try {
       final items = await _service.listDirectory(path);
-      print('\n✅ Successfully loaded ${items.length} items');
 
       setState(() {
         _items = items;
@@ -62,10 +58,7 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
         _isLoading = false;
       });
 
-      print('✅ UI updated with ${_items.length} items');
     } catch (e) {
-      print('\n❌ ERROR loading directory: $e');
-      print('Stack trace: ${StackTrace.current}');
 
       setState(() {
         _error = 'Error loading directory: $e';
@@ -201,10 +194,6 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
       // href is like: /public.php/webdav/test1/
       // We need to extract: /test1/
       final relativePath = item.href.replaceFirst('/public.php/webdav', '');
-      print('🔍 Navigation Debug:');
-      print('  Item href: ${item.href}');
-      print('  Relative path: $relativePath');
-      print('  Adding to history: $relativePath');
 
       _pathHistory.add(relativePath);
       _loadDirectory(relativePath);
