@@ -2,8 +2,7 @@
 
 ### Improvements
 
-- Updated CHANGELOG.md to properly document version 0.4.0
-- Improved package documentation completeness
+- Improved package documentation
 
 ## 0.4.0
 
@@ -16,7 +15,6 @@
   - `file_picker`: Updated constraint from `^8.1.2` to `^10.0.0` (now supports latest 10.3.3)
 - Improved code quality and linting compliance
 - Fixed unused variable warnings
-- Package now achieves higher pub.dev quality score
 
 ### Breaking Changes
 
