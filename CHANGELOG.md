@@ -1,3 +1,10 @@
+## 0.5.1
+
+### Improvements
+
+- Minor documentation updates
+- Package metadata improvements
+
 ## 0.5.0
 
 ### Improvements
