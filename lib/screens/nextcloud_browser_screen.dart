@@ -43,7 +43,6 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
   }
 
   Future<void> _loadDirectory(String path) async {
-
     setState(() {
       _isLoading = true;
       _error = null;
@@ -57,9 +56,7 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
         _currentPath = path;
         _isLoading = false;
       });
-
     } catch (e) {
-
       setState(() {
         _error = 'Error loading directory: $e';
         _isLoading = false;
