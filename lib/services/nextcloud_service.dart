@@ -25,7 +25,7 @@ class NextcloudService {
     try {
       final url = Uri.parse('$baseUrl$path');
 
-      final response = await http.Request('PROPFIND', url)
+      final response = http.Request('PROPFIND', url)
         ..headers.addAll(_getHeaders())
         ..headers['Depth'] = '1'
         ..body = '''<?xml version="1.0"?>
@@ -41,10 +41,8 @@ class NextcloudService {
   </d:prop>
 </d:propfind>''';
 
-
       final streamedResponse = await response.send();
       final responseBody = await streamedResponse.stream.bytesToString();
-
 
       if (streamedResponse.statusCode == 207) {
         final items = _parseWebDavResponse(responseBody, path);
@@ -60,7 +58,6 @@ class NextcloudService {
   }
 
   List<NextcloudItem> _parseWebDavResponse(String xml, String currentPath) {
-
     final document = XmlDocument.parse(xml);
     final responses = document.findAllElements('d:response');
 
@@ -71,9 +68,8 @@ class NextcloudService {
         final href = response.findElements('d:href').first.innerText;
 
         // Normalize paths for comparison (remove trailing slashes)
-        final normalizedHref = href.endsWith('/')
-            ? href.substring(0, href.length - 1)
-            : href;
+        final normalizedHref =
+            href.endsWith('/') ? href.substring(0, href.length - 1) : href;
         final normalizedCurrentPath = '/public.php/webdav$currentPath';
         final normalizedCurrentPathAlt = normalizedCurrentPath.endsWith('/')
             ? normalizedCurrentPath.substring(
@@ -81,7 +77,6 @@ class NextcloudService {
                 normalizedCurrentPath.length - 1,
               )
             : normalizedCurrentPath;
-
 
         // Skip the current directory itself
         if (normalizedHref == normalizedCurrentPathAlt) {
@@ -92,9 +87,8 @@ class NextcloudService {
         final prop = propstat.findElements('d:prop').first;
 
         final resourceType = prop.findElements('d:resourcetype').first;
-        final isDirectory = resourceType
-            .findElements('d:collection')
-            .isNotEmpty;
+        final isDirectory =
+            resourceType.findElements('d:collection').isNotEmpty;
 
         final displayName = prop.findElements('d:displayname').isNotEmpty
             ? prop.findElements('d:displayname').first.innerText
@@ -111,7 +105,6 @@ class NextcloudService {
                 prop.findElements('d:getlastmodified').first.innerText,
               )
             : null;
-
 
         final item = NextcloudItem(
           name: displayName,
@@ -139,9 +132,7 @@ class NextcloudService {
           '${baseUri.scheme}://${baseUri.host}${baseUri.hasPort ? ':${baseUri.port}' : ''}';
       final url = Uri.parse('$serverUrl${item.href}');
 
-
       final response = await http.get(url, headers: _getHeaders());
-
 
       if (response.statusCode == 200) {
         final file = File(savePath);
@@ -167,7 +158,6 @@ class NextcloudService {
 
       final fileLength = await file.length();
       final url = Uri.parse('$baseUrl$remotePath');
-
 
       // Create a multipart request with progress tracking
       final request = http.StreamedRequest('PUT', url);
@@ -203,7 +193,6 @@ class NextcloudService {
         },
       );
 
-
       if (response.statusCode == 201 || response.statusCode == 204) {
         // Upload successful
       } else {
@@ -219,7 +208,7 @@ class NextcloudService {
     try {
       final url = Uri.parse('$baseUrl$folderPath');
 
-      final response = await http.Request('MKCOL', url)
+      final response = http.Request('MKCOL', url)
         ..headers.addAll(_getHeaders());
 
       final streamedResponse = await response.send();
@@ -244,7 +233,6 @@ class NextcloudService {
 
       final response = await http.delete(url, headers: _getHeaders());
 
-
       if (response.statusCode == 204) {
       } else {
         throw Exception('Failed to delete item: ${response.statusCode}');
@@ -259,8 +247,7 @@ class NextcloudService {
       final sourceUrl = Uri.parse('$baseUrl$oldPath');
       final destinationUrl = Uri.parse('$baseUrl$newPath');
 
-
-      final response = await http.Request('MOVE', sourceUrl)
+      final response = http.Request('MOVE', sourceUrl)
         ..headers.addAll(_getHeaders())
         ..headers['Destination'] = destinationUrl.toString();
 
@@ -295,9 +282,8 @@ String base64Encode(List<int> bytes) {
 
     result += base64Chars[(triple >> 18) & 0x3F];
     result += base64Chars[(triple >> 12) & 0x3F];
-    result += (i - 1) > bytes.length - 2
-        ? '='
-        : base64Chars[(triple >> 6) & 0x3F];
+    result +=
+        (i - 1) > bytes.length - 2 ? '=' : base64Chars[(triple >> 6) & 0x3F];
     result += (i) > bytes.length - 1 ? '=' : base64Chars[triple & 0x3F];
   }
 

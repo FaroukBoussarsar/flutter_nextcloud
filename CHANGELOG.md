@@ -1,3 +1,27 @@
+## 0.5.0
+
+### Improvements
+
+- Updated CHANGELOG.md to properly document version 0.4.0
+- Improved package documentation completeness
+
+## 0.4.0
+
+### Quality Improvements
+
+- **Removed all debug print statements** from production code for better pub.dev score
+  - Removed 86 print statements across all library files
+  - Code now passes static analysis with minimal warnings
+- **Updated dependencies** to support latest stable versions:
+  - `file_picker`: Updated constraint from `^8.1.2` to `^10.0.0` (now supports latest 10.3.3)
+- Improved code quality and linting compliance
+- Fixed unused variable warnings
+- Package now achieves higher pub.dev quality score
+
+### Breaking Changes
+
+None - this is a quality improvement release.
+
 ## 0.3.0
 
 ### Documentation & Formatting
