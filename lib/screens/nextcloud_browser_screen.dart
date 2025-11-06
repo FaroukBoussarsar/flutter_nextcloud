@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import '../models/nextcloud_item.dart';
@@ -75,22 +74,7 @@ class _NextcloudBrowserScreenState extends State<NextcloudBrowserScreen> {
     }
   }
 
-  Future<void> _requestStoragePermission() async {
-    if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Storage permission denied')),
-          );
-        }
-      }
-    }
-  }
-
   Future<void> _downloadFile(NextcloudItem item) async {
-    await _requestStoragePermission();
-
     try {
       Directory? directory;
 

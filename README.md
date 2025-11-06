@@ -40,6 +40,68 @@ Then run:
 flutter pub get
 ```
 
+## Permissions
+
+This package requires storage permissions for downloading and uploading files. **You must handle permission requests in your app** before using download/upload features.
+
+### Android
+
+Add to your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<!-- For Android 12 and below -->
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+                 android:maxSdkVersion="32" />
+
+<!-- For Android 13+ (Granular media permissions) -->
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+```
+
+### iOS
+
+Add to your `ios/Runner/Info.plist`:
+
+```xml
+<key>NSPhotoLibraryUsageDescription</key>
+<string>We need access to your photo library to save downloaded files</string>
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>We need permission to save files to your photo library</string>
+```
+
+### Implementation
+
+Add `permission_handler` to your app's `pubspec.yaml`:
+
+```yaml
+dependencies:
+  permission_handler: ^11.0.1
+```
+
+Request permissions before downloading/uploading:
+
+```dart
+import 'package:permission_handler/permission_handler.dart';
+
+Future<bool> requestStoragePermission() async {
+  if (Platform.isAndroid) {
+    final status = await Permission.storage.request();
+    return status.isGranted;
+  }
+  return true; // iOS handles permissions automatically
+}
+
+// Use before downloading
+final hasPermission = await requestStoragePermission();
+if (hasPermission) {
+  // Proceed with download
+}
+```
+
+See [EXAMPLES.md](EXAMPLES.md) for complete implementation examples.
+
 ## Usage
 
 ### Quick Start with FlutterNextcloud Widget

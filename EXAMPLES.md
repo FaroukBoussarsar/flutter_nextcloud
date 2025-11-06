@@ -2,6 +2,160 @@
 
 This document provides various examples of how to use the `FlutterNextcloud` widget with different configurations.
 
+## Prerequisites: Permission Handling
+
+Before using download/upload features, you must handle storage permissions in your app. Here's a complete example:
+
+```dart
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_nextcloud/flutter_nextcloud.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: const PermissionWrapper(),
+    );
+  }
+}
+
+class PermissionWrapper extends StatefulWidget {
+  const PermissionWrapper({super.key});
+
+  @override
+  State<PermissionWrapper> createState() => _PermissionWrapperState();
+}
+
+class _PermissionWrapperState extends State<PermissionWrapper> {
+  bool _permissionsGranted = false;
+  bool _checkingPermissions = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.storage.status;
+      setState(() {
+        _permissionsGranted = status.isGranted;
+        _checkingPermissions = false;
+      });
+    } else {
+      // iOS handles permissions automatically
+      setState(() {
+        _permissionsGranted = true;
+        _checkingPermissions = false;
+      });
+    }
+  }
+
+  Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.storage.request();
+      setState(() {
+        _permissionsGranted = status.isGranted;
+      });
+
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Storage permission is required for downloads'),
+              action: SnackBarAction(
+                label: 'Settings',
+                onPressed: () => openAppSettings(),
+              ),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checkingPermissions) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (!_permissionsGranted) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.folder_open, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Storage Permission Required',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'This app needs storage permission to download and upload files.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _requestPermissions,
+                child: const Text('Grant Permission'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return const FlutterNextcloud(
+      primaryColor: Colors.blue,
+      title: 'My Cloud Storage',
+    );
+  }
+}
+```
+
+**Required Setup:**
+
+1. Add `permission_handler` to your `pubspec.yaml`:
+```yaml
+dependencies:
+  permission_handler: ^11.0.1
+```
+
+2. Configure Android permissions in `android/app/src/main/AndroidManifest.xml`:
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+                 android:maxSdkVersion="32" />
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+```
+
+3. Configure iOS permissions in `ios/Runner/Info.plist`:
+```xml
+<key>NSPhotoLibraryUsageDescription</key>
+<string>We need access to your photo library to save downloaded files</string>
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>We need permission to save files to your photo library</string>
+```
+
 ## Basic Usage
 
 The simplest way to use the package:
