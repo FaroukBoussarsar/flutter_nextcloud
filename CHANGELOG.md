@@ -1,3 +1,12 @@
+## 0.3.0
+
+### Documentation & Formatting
+
+- Fixed formatting and indentation in documentation files
+- Fixed indentation in example app Info.plist files for consistency
+- Fixed formatting in AndroidManifest.xml files
+- Improved documentation readability
+
 ## 0.2.0
 
 ### Breaking Changes
@@ -16,6 +25,7 @@ To update from 0.1.0 to 0.2.0:
 ### Why This Change?
 
 Moving permission handling to the app level:
+
 - Gives developers full control over permission UX flow
 - Allows customization of permission prompts and messaging
 - Makes the package more transparent about its requirements
@@ -36,4 +46,3 @@ See [README.md](README.md#permissions) and [EXAMPLES.md](EXAMPLES.md#prerequisit
 - Cross-platform support (iOS, Android, Web, Desktop)
 - WebDAV protocol implementation
 - Pre-built UI screens for configuration and browsing
-

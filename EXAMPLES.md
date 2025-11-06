@@ -133,15 +133,17 @@ class _PermissionWrapperState extends State<PermissionWrapper> {
 **Required Setup:**
 
 1. Add `permission_handler` to your `pubspec.yaml`:
+
 ```yaml
 dependencies:
   permission_handler: ^11.0.1
 ```
 
 2. Configure Android permissions in `android/app/src/main/AndroidManifest.xml`:
+
 ```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
                  android:maxSdkVersion="32" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
@@ -149,6 +151,7 @@ dependencies:
 ```
 
 3. Configure iOS permissions in `ios/Runner/Info.plist`:
+
 ```xml
 <key>NSPhotoLibraryUsageDescription</key>
 <string>We need access to your photo library to save downloaded files</string>

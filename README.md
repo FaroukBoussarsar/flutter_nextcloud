@@ -51,7 +51,7 @@ Add to your `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <!-- For Android 12 and below -->
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
                  android:maxSdkVersion="32" />
 
 <!-- For Android 13+ (Granular media permissions) -->
