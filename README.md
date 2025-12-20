@@ -195,19 +195,38 @@ final config = NextcloudConfig.authenticated(
 // Create service instance
 final service = NextcloudService(config);
 
+// Verify connection (Optional but recommended)
+await service.connect();
+
 // List directory contents
 final items = await service.listDirectory('/');
+
+// Upload file with progress
+await service.uploadFile(
+  localFilePath,
+  '/remote/path/file.txt',
+  onProgress: (sent, total) {
+    print('Progress: ${sent / total}');
+  },
+);
+
+// Download file
+await service.downloadFile(item, localSavePath);
+
+// Delete item
+await service.deleteItem(item.href);
+```
 
 // Download a file
 await service.downloadFile(items[0], '/path/to/save/file.txt');
 
 // Upload a file
 await service.uploadFile(
-  '/path/to/local/file.txt',
-  '/remote/path/file.txt',
-  onProgress: (sent, total) {
-    print('Progress: ${(sent / total * 100).toStringAsFixed(1)}%');
-  },
+'/path/to/local/file.txt',
+'/remote/path/file.txt',
+onProgress: (sent, total) {
+print('Progress: ${(sent / total \* 100).toStringAsFixed(1)}%');
+},
 );
 
 // Create a folder
@@ -218,7 +237,8 @@ await service.deleteItem('/path/to/item');
 
 // Rename an item
 await service.renameItem('/old-path', '/new-path');
-```
+
+````
 
 ## Models
 
@@ -240,7 +260,7 @@ NextcloudConfig.authenticated({
   required String username,
   required String password,
 })
-```
+````
 
 ### NextcloudItem
 

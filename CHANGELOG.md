@@ -1,3 +1,12 @@
+## 0.6.0
+
+### New Features
+
+- **Exposed Core API**: You can now use `NextcloudService` directly to build your own custom UI.
+- **Added `connect()` method**: New method in `NextcloudService` to verify connection and credentials.
+- **Upload Progress**: `uploadFile` now supports an `onProgress` callback.
+- **Custom UI Example**: Added a comprehensive example demonstrating how to use the API directly.
+
 ## 0.5.1
 
 ### Improvements

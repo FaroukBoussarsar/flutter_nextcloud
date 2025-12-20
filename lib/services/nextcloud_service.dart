@@ -9,6 +9,17 @@ class NextcloudService {
 
   NextcloudService(this.config);
 
+  /// Verifies the connection to the Nextcloud server using the provided configuration.
+  /// Throws an exception if the connection fails or credentials are invalid.
+  Future<void> connect() async {
+    try {
+      // Try to list the root directory to verify connection and credentials
+      await listDirectory('/');
+    } catch (e) {
+      throw Exception('Failed to connect to Nextcloud server: $e');
+    }
+  }
+
   // Create basic auth header
   Map<String, String> _getHeaders() {
     return {'Authorization': 'Basic ${_getBasicAuth()}'};

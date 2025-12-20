@@ -368,3 +368,32 @@ class HomePage extends StatelessWidget {
 - Custom AppBars (`configurationAppBar` and `browserAppBar`) will completely replace the default AppBars
 - If custom AppBars are provided, the `title` parameter is ignored for that screen
 - Theme colors automatically propagate throughout the entire UI
+
+## Custom UI Implementation
+
+If you want to build your own UI completely from scratch, you can use the `NextcloudService` class directly.
+
+See the full example in `example/lib/custom_ui_example.dart` in the package repository.
+
+### Basic Service Usage
+
+```dart
+// 1. Create Configuration
+final config = NextcloudConfig.authenticated(
+  serverUrl: 'https://cloud.example.com',
+  username: 'user',
+  password: 'password',
+);
+
+// 2. Initialize Service
+final service = NextcloudService(config);
+
+// 3. Connect & List Files
+try {
+  await service.connect();
+  final items = await service.listDirectory('/');
+  // Update your UI with items
+} catch (e) {
+  // Handle errors
+}
+```
