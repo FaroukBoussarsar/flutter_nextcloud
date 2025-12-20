@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Example 1: Basic usage with default settings
-    // return const FlutterNextcloud();
+    return const FlutterNextcloud();
 
     // Example 2: Custom theme colors
     // return const FlutterNextcloud(
@@ -21,26 +21,26 @@ class MyApp extends StatelessWidget {
     // );
 
     // Example 3: Custom AppBars
-    return FlutterNextcloud(
-      primaryColor: Colors.deepPurple,
-      configurationAppBar: AppBar(
-        title: const Text('Connect to Cloud'),
-        backgroundColor: Colors.deepPurple,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help),
-            onPressed: () {
-              // Show help dialog
-            },
-          ),
-        ],
-      ),
-      browserAppBar: AppBar(
-        title: const Text('My Files'),
-        backgroundColor: Colors.deepPurple,
-        centerTitle: true,
-      ),
-    );
+    // return FlutterNextcloud(
+    //   primaryColor: Colors.deepPurple,
+    //   configurationAppBar: AppBar(
+    //     title: const Text('Connect to Cloud'),
+    //     backgroundColor: Colors.deepPurple,
+    //     actions: [
+    //       IconButton(
+    //         icon: const Icon(Icons.help),
+    //         onPressed: () {
+    //           // Show help dialog
+    //         },
+    //       ),
+    //     ],
+    //   ),
+    //   browserAppBar: AppBar(
+    //     title: const Text('My Files'),
+    //     backgroundColor: Colors.deepPurple,
+    //     centerTitle: true,
+    //   ),
+    // );
 
     // Example 4: Pre-filled configuration (user still sees config screen)
     // return const FlutterNextcloud(
